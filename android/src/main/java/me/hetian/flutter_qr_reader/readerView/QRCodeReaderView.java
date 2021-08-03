@@ -49,7 +49,6 @@ import java.util.EnumSet;
 import java.util.Map;
 
 import com.google.zxing.client.android.camera.CameraManager;
-
 import me.hetian.flutter_qr_reader.reader.DecodeFormatManager;
 import me.hetian.flutter_qr_reader.reader.MyMultiFormatReader;
 import me.hetian.flutter_qr_reader.reader.MyPlanarYUVLuminanceSource;
@@ -168,14 +167,25 @@ public class QRCodeReaderView extends SurfaceView
      */
     public void startCamera() {
         mCameraManager.startPreview();
+
     }
 
     /**
      * Stop google.zxing.client.android.android.com.google.zxing.client.android.camera preview and decoding
      */
     public void stopCamera() {
-        mCameraManager.stopPreview();
+//        mCameraManager.setPreviewCallback(null);
+//        mCameraManager.stopPreview();
+//        mCameraManager.closeDriver();
+
+        mCameraManager.releaseCamera();
+
+
     }
+    public void closeDriver(){
+        mCameraManager.closeDriver();
+    }
+    
 
     /**
      * Set Camera autofocus interval value

@@ -210,6 +210,15 @@ public final class CameraManager {
     }
   }
 
+  public synchronized void releaseCamera() {
+    // if (isOpen()) {
+    //   // openCamera.getCamera().stopPreview();
+    //   openCamera.getCamera().release();
+    //   openCamera = null;
+    // }
+    openCamera.getCamera().release();
+  }
+
   /**
    * Tells the google.zxing.client.android.android.com.google.zxing.client.android.camera to stop drawing preview frames.
    */

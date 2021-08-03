@@ -31,7 +31,8 @@ class QrcodeReaderView extends StatefulWidget {
 /// GlobalKey<QrcodeReaderViewState> qrViewKey = GlobalKey();
 /// qrViewKey.currentState.startScan();
 /// ```
-class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderStateMixin, WidgetsBindingObserver {
+class QrcodeReaderViewState extends State<QrcodeReaderView>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   QrReaderViewController? _controller;
   AnimationController? _animationController;
@@ -47,7 +48,7 @@ class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderS
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     showScanView();
   }
 
@@ -100,7 +101,8 @@ class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderS
   }
 
   void _initAnimation() {
-    _animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 1000));
+    _animationController = AnimationController(
+        vsync: this, duration: Duration(milliseconds: 1000));
     _animationController!
       ..addListener(_upState)
       ..addStatusListener((state) {
@@ -219,7 +221,9 @@ class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderS
                     Text.rich(
                       TextSpan(
                         children: [
-                          TextSpan(text: "相机访问权限：", style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(
+                              text: "相机访问权限：",
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           TextSpan(text: "扫码程序必须使用相机实时完成扫码识别。"),
                         ],
                       ),
@@ -241,8 +245,11 @@ class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderS
                     Text.rich(
                       TextSpan(
                         children: [
-                          TextSpan(text: "读写手机存储权限：", style: TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(text: "实现选取任意图片识别图片中的二维码；该权限会在你主动使用时提示您申请该权限。"),
+                          TextSpan(
+                              text: "读写手机存储权限：",
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(
+                              text: "实现选取任意图片识别图片中的二维码；该权限会在你主动使用时提示您申请该权限。"),
                         ],
                       ),
                       style: TextStyle(
@@ -262,7 +269,8 @@ class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderS
                 ),
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all(Colors.green[900]),
-                  padding: MaterialStateProperty.all(EdgeInsets.symmetric(vertical: 8, horizontal: 16)),
+                  padding: MaterialStateProperty.all(
+                      EdgeInsets.symmetric(vertical: 8, horizontal: 16)),
                 ),
               ),
             ],
@@ -313,7 +321,8 @@ class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderS
                 painter: QrScanBoxPainter(
                   boxLineColor: widget.boxLineColor,
                   animationValue: _animationController?.value ?? 0,
-                  isForward: _animationController?.status == AnimationStatus.forward,
+                  isForward:
+                      _animationController?.status == AnimationStatus.forward,
                 ),
                 child: SizedBox(
                   width: qrScanSize,
@@ -322,7 +331,9 @@ class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderS
               ),
             ),
             Positioned(
-              top: (constraints.maxHeight - qrScanSize) * 0.333333 + qrScanSize + 24,
+              top: (constraints.maxHeight - qrScanSize) * 0.333333 +
+                  qrScanSize +
+                  24,
               width: constraints.maxWidth,
               child: Align(
                 alignment: Alignment.center,
@@ -333,7 +344,10 @@ class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderS
               ),
             ),
             Positioned(
-              top: (constraints.maxHeight - qrScanSize) * 0.333333 + qrScanSize - 12 - 35,
+              top: (constraints.maxHeight - qrScanSize) * 0.333333 +
+                  qrScanSize -
+                  12 -
+                  35,
               width: constraints.maxWidth,
               child: Align(
                 alignment: Alignment.center,
@@ -346,7 +360,9 @@ class QrcodeReaderViewState extends State<QrcodeReaderView> with TickerProviderS
             ),
             Positioned(
               width: constraints.maxWidth,
-              bottom: constraints.maxHeight == mediaQuery.size.height ? 12 + mediaQuery.padding.top : 12,
+              bottom: constraints.maxHeight == mediaQuery.size.height
+                  ? 12 + mediaQuery.padding.top
+                  : 12,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -405,7 +421,10 @@ class QrScanBoxPainter extends CustomPainter {
   final bool isForward;
   final Color boxLineColor;
 
-  QrScanBoxPainter({required this.animationValue, required this.isForward, required this.boxLineColor});
+  QrScanBoxPainter(
+      {required this.animationValue,
+      required this.isForward,
+      required this.boxLineColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -437,7 +456,8 @@ class QrScanBoxPainter extends CustomPainter {
     // rightBottom
     path.moveTo(size.width, size.height - 50);
     path.lineTo(size.width, size.height - 12);
-    path.quadraticBezierTo(size.width, size.height, size.width - 12, size.height);
+    path.quadraticBezierTo(
+        size.width, size.height, size.width - 12, size.height);
     path.lineTo(size.width - 50, size.height);
     // leftBottom
     path.moveTo(50, size.height);
@@ -447,7 +467,8 @@ class QrScanBoxPainter extends CustomPainter {
 
     canvas.drawPath(path, borderPaint);
 
-    canvas.clipRRect(BorderRadius.all(Radius.circular(12)).toRRect(Offset.zero & size));
+    canvas.clipRRect(
+        BorderRadius.all(Radius.circular(12)).toRRect(Offset.zero & size));
 
     // 绘制横向网格
     final linePaint = Paint();
@@ -482,8 +503,10 @@ class QrScanBoxPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(QrScanBoxPainter oldDelegate) => animationValue != oldDelegate.animationValue;
+  bool shouldRepaint(QrScanBoxPainter oldDelegate) =>
+      animationValue != oldDelegate.animationValue;
 
   @override
-  bool shouldRebuildSemantics(QrScanBoxPainter oldDelegate) => animationValue != oldDelegate.animationValue;
+  bool shouldRebuildSemantics(QrScanBoxPainter oldDelegate) =>
+      animationValue != oldDelegate.animationValue;
 }
