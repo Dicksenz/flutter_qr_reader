@@ -216,7 +216,7 @@ public final class CameraManager {
     //   openCamera.getCamera().release();
     //   openCamera = null;
     // }
-    openCamera.getCamera().release();
+    openCamera.getCamera().stopPreview();
   }
 
   /**
