@@ -179,7 +179,7 @@ public class QRCodeReaderView extends SurfaceView
 //        mCameraManager.closeDriver();
 
        
-        mCameraManager.closeDriver();
+        // mCameraManager.closeDriver();
 
 
     }
