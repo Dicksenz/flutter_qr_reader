@@ -1,9 +1,13 @@
 package me.hetian.flutter_qr_reader.factorys;
 
+import android.app.Activity;
 import android.content.Context;
 
 import java.util.Map;
 
+import androidx.annotation.NonNull;
+
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.StandardMessageCodec;
 import io.flutter.plugin.platform.PlatformView;
@@ -11,15 +15,20 @@ import io.flutter.plugin.platform.PlatformViewFactory;
 import me.hetian.flutter_qr_reader.views.QrReaderView;
 
 public class QrReaderFactory extends PlatformViewFactory {
-    BinaryMessenger binaryMessenger;
-    public QrReaderFactory(BinaryMessenger binaryMessenger) {
+
+    private final FlutterPlugin.FlutterPluginBinding pluginBinding;
+    private final Activity activity;
+
+    public QrReaderFactory(FlutterPlugin.FlutterPluginBinding pluginBinding, Activity activity) {
         super(StandardMessageCodec.INSTANCE);
-        this.binaryMessenger = binaryMessenger;
+        this.pluginBinding = pluginBinding;
+        this.activity = activity;
     }
 
     @Override
-    public PlatformView create(Context context, int id, Object args) {
+    public PlatformView create(@NonNull Context context, int id, Object args) {
         Map<String, Object> params = (Map<String, Object>) args;
-        return new QrReaderView(context, binaryMessenger, id, params);
+        BinaryMessenger messenger = pluginBinding.getBinaryMessenger();
+        return new QrReaderView(context, activity, messenger, id, params);
     }
 }

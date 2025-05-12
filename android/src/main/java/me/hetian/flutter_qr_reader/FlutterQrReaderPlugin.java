@@ -8,7 +8,6 @@ import java.io.File;
 
 import androidx.annotation.NonNull;
 
-import io.flutter.app.FlutterActivityEvents;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -16,103 +15,91 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 import me.hetian.flutter_qr_reader.factorys.QrReaderFactory;
 
-/**
- * FlutterQrReaderPlugin
- */
+/** FlutterQrReaderPlugin */
 public class FlutterQrReaderPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
+  private MethodChannel channel;
+  private FlutterPluginBinding pluginBinding;
+  private Activity activity;
 
-    private static final String CHANNEL_NAME = "me.hetian.plugins/flutter_qr_reader";
-    private static final String CHANNEL_VIEW_NAME = "me.hetian.plugins/flutter_qr_reader/reader_view";
+  @Override
+  public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+    this.pluginBinding = flutterPluginBinding;
+    channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "me.hetian.flutter_qr_reader");
+    channel.setMethodCallHandler(this);
+  }
 
-    private MethodChannel channel;
+  @Override
+  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+    if (channel != null) {
+      channel.setMethodCallHandler(null);
+      channel = null;
+    }
+    pluginBinding = null;
+  }
 
-    private Activity activity;
+  @Override
+  public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+    this.activity = binding.getActivity();
+    pluginBinding.getPlatformViewRegistry().registerViewFactory(
+      "me.hetian.flutter_qr_reader.reader_view",
+      new QrReaderFactory(pluginBinding, activity)
+    );
+  }
 
-    @Override
-    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-        channel = new MethodChannel(binding.getBinaryMessenger(), CHANNEL_NAME);
-        channel.setMethodCallHandler(this);
+  @Override
+  public void onDetachedFromActivity() {
+    activity = null;
+  }
 
-        binding.getPlatformViewRegistry().registerViewFactory(CHANNEL_VIEW_NAME, new QrReaderFactory(binding.getBinaryMessenger()));
+  @Override
+  public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+    onAttachedToActivity(binding);
+  }
+
+  @Override
+  public void onDetachedFromActivityForConfigChanges() {
+    activity = null;
+  }
+
+  @Override
+  public void onMethodCall(MethodCall call, Result result) {
+    if (call.method.equals("imgQrCode")) {
+      imgQrCode(call, result);
+    } else {
+      result.notImplemented();
+    }
+  }
+
+  @SuppressLint("StaticFieldLeak")
+  void imgQrCode(MethodCall call, final Result result) {
+    final String filePath = call.argument("file");
+    if (filePath == null) {
+      result.error("Not found data", null, null);
+      return;
     }
 
-    @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-        if (call.method.equals("imgQrCode")) {
-            this.imgQrCode(call, result);
+    File file = new File(filePath);
+    if (!file.exists()) {
+      result.error("File not found", null, null);
+      return;
+    }
+
+    new AsyncTask<String, Integer, String>() {
+      @Override
+      protected String doInBackground(String... params) {
+        return QRCodeDecoder.syncDecodeQRCode(filePath);
+      }
+
+      @Override
+      protected void onPostExecute(String s) {
+        if (s == null) {
+          result.error("not data", null, null);
         } else {
-            result.notImplemented();
+          result.success(s);
         }
-    }
-
-    @Override
-    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-        this.activity = binding.getActivity();
-    }
-
-    @Override
-    public void onDetachedFromActivityForConfigChanges() {
-    }
-
-    @Override
-    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
-        this.activity = binding.getActivity();
-    }
-
-    @Override
-    public void onDetachedFromActivity() {
-        this.activity = null;
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    class DecodeTask extends AsyncTask<String, Integer, String> {
-
-        final private String filePath;
-        final private Result result;
-
-        private DecodeTask(String filePath, Result result) {
-            super();
-            this.filePath = filePath;
-            this.result = result;
-        }
-
-        @Override
-        protected String doInBackground(String... strs) {
-            // 解析二维码/条码
-            return QRCodeDecoder.syncDecodeQRCode(activity, filePath);
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            if (null == s) {
-                result.error("not data", null, null);
-            } else {
-                result.success(s);
-            }
-        }
-    }
-
-    void imgQrCode(MethodCall call, final Result result) {
-        final String filePath = call.argument("file");
-        if (filePath == null) {
-            result.error("Not found data", null, null);
-            return;
-        }
-        File file = new File(filePath);
-        if (!file.exists()) {
-            result.error("File not found", null, null);
-        }
-
-        new DecodeTask(filePath, result).execute(filePath);
-    }
-
-
-    @Override
-    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        channel.setMethodCallHandler(null);
-    }
+      }
+    }.execute(filePath);
+  }
 }
