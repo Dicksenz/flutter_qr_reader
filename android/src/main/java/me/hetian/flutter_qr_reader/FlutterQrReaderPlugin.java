@@ -1,43 +1,66 @@
 package me.hetian.flutter_qr_reader;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.os.AsyncTask;
 
 import java.io.File;
 
+import androidx.annotation.NonNull;
+
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 import me.hetian.flutter_qr_reader.factorys.QrReaderFactory;
 
-
 /** FlutterQrReaderPlugin */
-public class FlutterQrReaderPlugin implements MethodCallHandler {
+public class FlutterQrReaderPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
+  private MethodChannel channel;
+  private FlutterPluginBinding pluginBinding;
+  private Activity activity;
 
-//  private static final int REQUEST_CODE_CAMERA_PERMISSION = 3777;
-  private static final String CHANNEL_NAME = "me.hetian.flutter_qr_reader";
-  private static final String CHANNEL_VIEW_NAME = "me.hetian.flutter_qr_reader.reader_view";
-
-
-  private  Registrar registrar;
-
-  FlutterQrReaderPlugin(Registrar registrar) {
-    this.registrar = registrar;
+  @Override
+  public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+    this.pluginBinding = flutterPluginBinding;
+    channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "me.hetian.flutter_qr_reader");
+    channel.setMethodCallHandler(this);
   }
 
-//  private interface PermissionsResult {
-//    void onSuccess();
-//    void onError();
-//  }
+  @Override
+  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+    if (channel != null) {
+      channel.setMethodCallHandler(null);
+      channel = null;
+    }
+    pluginBinding = null;
+  }
 
-  /** Plugin registration. */
-  public static void registerWith(Registrar registrar) {
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), CHANNEL_NAME);
-    registrar.platformViewRegistry().registerViewFactory(CHANNEL_VIEW_NAME, new QrReaderFactory(registrar));
-    final FlutterQrReaderPlugin instance = new FlutterQrReaderPlugin(registrar);
-    channel.setMethodCallHandler(instance);
+  @Override
+  public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+    this.activity = binding.getActivity();
+    pluginBinding.getPlatformViewRegistry().registerViewFactory(
+      "me.hetian.flutter_qr_reader.reader_view",
+      new QrReaderFactory(pluginBinding, activity)
+    );
+  }
+
+  @Override
+  public void onDetachedFromActivity() {
+    activity = null;
+  }
+
+  @Override
+  public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+    onAttachedToActivity(binding);
+  }
+
+  @Override
+  public void onDetachedFromActivityForConfigChanges() {
+    activity = null;
   }
 
   @Override
@@ -56,55 +79,27 @@ public class FlutterQrReaderPlugin implements MethodCallHandler {
       result.error("Not found data", null, null);
       return;
     }
+
     File file = new File(filePath);
     if (!file.exists()) {
       result.error("File not found", null, null);
+      return;
     }
 
     new AsyncTask<String, Integer, String>() {
       @Override
       protected String doInBackground(String... params) {
-        // 解析二维码/条码
         return QRCodeDecoder.syncDecodeQRCode(filePath);
       }
+
       @Override
       protected void onPostExecute(String s) {
-        super.onPostExecute(s);
-        if(null == s){
+        if (s == null) {
           result.error("not data", null, null);
-        }else {
+        } else {
           result.success(s);
         }
       }
     }.execute(filePath);
   }
-
-//  @TargetApi(Build.VERSION_CODES.M)
-//  private void checkPermissions(final PermissionsResult result) {
-//    if (!(registrar.activity().checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)) {
-//      registrar.addRequestPermissionsResultListener(new PluginRegistry.RequestPermissionsResultListener() {
-//        @Override
-//        public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-//          if (requestCode == REQUEST_CODE_CAMERA_PERMISSION) {
-//            for (int i = 0; i < permissions.length; i++) {
-//              String permission = permissions[i];
-//              int grantResult = grantResults[i];
-//
-//              if (permission.equals(Manifest.permission.CAMERA)) {
-//                if (grantResult == PackageManager.PERMISSION_GRANTED) {
-//                  result.onSuccess();
-//                } else {
-//                  result.onError();
-//                }
-//              }
-//            }
-//          }
-//          return false;
-//        }
-//      });
-//      registrar.activity().requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CODE_CAMERA_PERMISSION);
-//    } else {
-//      result.onSuccess();
-//    }
-//  }
 }
