@@ -29,6 +29,7 @@ public class QrReaderFactory extends PlatformViewFactory {
     public PlatformView create(@NonNull Context context, int id, Object args) {
         Map<String, Object> params = (Map<String, Object>) args;
         BinaryMessenger messenger = pluginBinding.getBinaryMessenger();
-        return new QrReaderView(context, activity, messenger, id, params);
+        // Pass only context and remove the activity reference
+        return new QrReaderView(context, messenger, id, params);
     }
 }

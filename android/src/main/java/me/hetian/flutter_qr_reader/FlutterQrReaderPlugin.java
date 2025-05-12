@@ -44,7 +44,7 @@ public class FlutterQrReaderPlugin implements FlutterPlugin, MethodCallHandler, 
     this.activity = binding.getActivity();
     pluginBinding.getPlatformViewRegistry().registerViewFactory(
       "me.hetian.flutter_qr_reader.reader_view",
-      new QrReaderFactory(pluginBinding, activity)
+      new QrReaderFactory(pluginBinding.getBinaryMessenger(), activity)
     );
   }
 
@@ -89,7 +89,8 @@ public class FlutterQrReaderPlugin implements FlutterPlugin, MethodCallHandler, 
     new AsyncTask<String, Integer, String>() {
       @Override
       protected String doInBackground(String... params) {
-        return QRCodeDecoder.syncDecodeQRCode(filePath);
+        // Pass the context to the decoder method
+        return QRCodeDecoder.syncDecodeQRCode(activity.getApplicationContext(), file);
       }
 
       @Override
